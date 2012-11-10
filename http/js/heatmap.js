@@ -21,6 +21,16 @@ function pad(number, length) {
     return str;
 }
 
+function pluralise(number, plural_suffix, singular_suffix){
+    var plural_suffix = plural_suffix || 's';
+    var singular_suffix = singular_suffix || '';
+	if(number == 1){
+		return singular_suffix;
+	} else {
+		return plural_suffix;
+	}
+}
+
 function ucfirst(string){
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -130,7 +140,7 @@ $(function(){
                 $d = $('.day[data-year="' + day.y + '"][data-month="' + day.m + '"][data-day="' + day.d + '"]');
                 
                 $d.removeClass('empty');
-                $d.attr('title', day.n + ' scrobbles on ' + $d.attr('title'));
+                $d.attr('title', day.n + ' scrobble' + pluralise(day.n) + ' on ' + $d.attr('title'));
                 $d.css({
                     zIndex: parseFloat(shade).toFixed(2) * 100,
                     backgroundColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100)),
