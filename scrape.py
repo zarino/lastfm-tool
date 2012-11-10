@@ -85,8 +85,10 @@ def get_scrobbles(page=None):
     else:
         # we didn't ask for a page - start from the end
         i = dom.cssselect('recenttracks')[0].get('totalpages')
-        print i, 'pages to scrape'
-        get_scrobbles(int(i))
+        i = int(i)
+        if i < 0:
+            print i, 'pages to scrape'
+            get_scrobbles(i)
 
 # settings
 user = 'zarino'
