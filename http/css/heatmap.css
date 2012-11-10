@@ -1,0 +1,24 @@
+#heatmap {
+    margin: 30px;
+}
+
+.day {
+    position: relative;
+    float: left;
+    width: 30px;
+    height: 30px;
+    border: 1px solid #ddd;
+    margin: 0 0 -1px -1px;
+    -webkit-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.5);
+    box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.5);
+}
+
+/*
+.day:hover, .month:hover .day:hover {
+    background-color: #ddd;
+}
+
+.month:hover .day {
+    background-color: #f3f3f3;
+}
+*/
