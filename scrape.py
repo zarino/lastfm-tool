@@ -31,10 +31,7 @@ def get_scrobbles(page=None):
     if page:
         params['page'] = page
     req = requests.get('http://ws.audioscrobbler.com/2.0/', params=params)
-    print 'GET', req.url
     xml = req.text.replace(' encoding="utf-8"', '') # stop lxml complaining about encodings
-    for l in xml.splitlines()[:4]:
-        print '\033[22;37m   ', l.strip(), '\033[0m'
     dom = lxml.html.fromstring(xml)
 
     if dom.cssselect('error'):
@@ -42,7 +39,7 @@ def get_scrobbles(page=None):
         exit()
 
     if page:
-        print 'scraping page', page
+        print 'Scraping page #%s' % page
         # we asked for a particular page - get all the tracks
         artists = []
         albums = []
@@ -72,23 +69,27 @@ def get_scrobbles(page=None):
                 'user': user,
                 'track_mbid': item.cssselect('mbid')[0].text
             })
-        print 'saving', len(artists), 'artists,', len(albums), 'albums,', len(tracks), 'tracks,', len(scrobbles), 'scrobbles...'
         dt.upsert(artists, "artist")
         dt.upsert(albums, "album")
         dt.upsert(tracks, "track")
         dt.upsert(scrobbles, "scrobble")
+        min = time.strftime('%Y-%m-%d %H:%I', time.gmtime(float(scrobbles[0]['date'])))
+        max = time.strftime('%Y-%m-%d %H:%I', time.gmtime(float(scrobbles[-1]['date'])))
+        print 'Saved', len(scrobbles), 'scrobbles:', min , 'to', max
         if page > 1:
             get_scrobbles(page - 1)
         else:
-            print 'done!'
+            print 'Done!'
 
     else:
         # we didn't ask for a page - start from the end
-        i = dom.cssselect('recenttracks')[0].get('totalpages')
-        i = int(i)
-        if i < 0:
-            print i, 'pages to scrape'
+        i = int(dom.cssselect('recenttracks')[0].get('totalpages'))
+        t = int(dom.cssselect('recenttracks')[0].get('total'))
+        if i > 0:
+            print t, 'new tracks since', time.strftime('%Y-%m-%d %H:%I', time.gmtime(latest))
             get_scrobbles(i)
+        else:
+            print 'No new tracks since', time.strftime('%Y-%m-%d %H:%I', time.gmtime(latest))
 
 # settings
 user = 'zarino'
