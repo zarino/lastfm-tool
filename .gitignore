@@ -13,6 +13,7 @@ scraperwiki.sqlite
 .joe_state
 .nano_history
 .emacs.d
+.selected_editor
 
 ## NODE
 npm-debug.log
