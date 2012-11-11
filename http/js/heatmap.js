@@ -103,6 +103,9 @@ var month_names = ['january','february','march','april','may','june','july','aug
 var days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 $(function(){
+
+    $('body').append('<p class="loading">Loading last.fm data</p>');
+
     query("select strftime('%m', date(min(date), 'unixepoch')) as min_month, strftime('%Y', date(min(date), 'unixepoch')) as min_year, strftime('%m', date(max(date), 'unixepoch')) as max_month, strftime('%Y', date(max(date), 'unixepoch')) as max_year from scrobble;", function(data){
         var min_year = data[0]['min_year'];
         var min_month = data[0]['min_month'];
@@ -128,6 +131,7 @@ $(function(){
             }
         }
         $('#heatmap').append('<div class="clearfix">');
+        $('p.loading').remove();
         query("select strftime('%d', date(date, 'unixepoch')) as d, strftime('%m', date(date, 'unixepoch')) as m, strftime('%Y', date(date, 'unixepoch')) as y, count(date) as n from scrobble group by y, m, d;", function(data){
             console.log(data);
             var max_scrobbles = 0;
@@ -142,7 +146,7 @@ $(function(){
                 $d.removeClass('empty');
                 $d.attr('title', day.n + ' scrobble' + pluralise(day.n) + ' on ' + $d.attr('title'));
                 $d.css({
-                    zIndex: parseFloat(shade).toFixed(2) * 100,
+                    zIndex: Math.round(shade * 100),
                     backgroundColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100)),
                     borderColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100*0.65))
                 });
