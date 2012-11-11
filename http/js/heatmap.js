@@ -45,6 +45,15 @@ function ordinal(n) {
    return n + (s[(v-20)%10]||s[v]||s[0]);
 }
 
+function day_name(d, m, y){
+    var day_object = new Date(y + '/' + pad(m) + '/' + pad(d));
+    return day_names[day_object.getDay()];
+}
+
+function human_date(d, m, y){
+    return ucfirst(day_name(d, m, y)) + ' ' + ordinal(d) + ' ' + ucfirst(month_names[m-1]) + ' ' + y;
+}
+
 function hslToRgb(h, s, l){
     // h, s, l must be numbers between 0 and 1
     // will return r, g, b as numbers between 0 and 255
