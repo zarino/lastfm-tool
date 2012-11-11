@@ -133,7 +133,6 @@ $(function(){
         $('#heatmap').append('<div class="clearfix">');
         $('p.loading').remove();
         query("select strftime('%d', date(date, 'unixepoch')) as d, strftime('%m', date(date, 'unixepoch')) as m, strftime('%Y', date(date, 'unixepoch')) as y, count(date) as n from scrobble group by y, m, d;", function(data){
-            console.log(data);
             var max_scrobbles = 0;
             $.each(data, function(i, day){
                 max_scrobbles = Math.max(max_scrobbles, day.n);
@@ -143,9 +142,8 @@ $(function(){
                 var hsl_list = mix([0,100,30], [55,100,90], parseFloat(shade).toFixed(3));
                 $d = $('.day[data-year="' + day.y + '"][data-month="' + day.m + '"][data-day="' + day.d + '"]');
                 
-                $d.removeClass('empty');
+                $d.removeClass('empty').data('scrobbles', day.n).data('shade', shade);
                 $d.attr('title', day.n + ' scrobble' + pluralise(day.n) + ' on ' + $d.attr('title'));
-                $d.data('scrobbles', day.n).data('shade', shade);
                 $d.css({
                     zIndex: Math.round(shade * 100),
                     backgroundColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100)),
