@@ -177,7 +177,7 @@ $(function(){
             query("select strftime('%H', datetime(date, 'unixepoch')) as hour, count(date) as n from scrobble where strftime('%d', date(date, 'unixepoch')) = '11' and strftime('%m', date(date, 'unixepoch')) = '11' and strftime('%Y', date(date, 'unixepoch')) = '2012' group by hour order by hour;", function(data){
                 console.log(data);
             });
-            query("select strftime('%H:%M', datetime(date, 'unixepoch')) as time, track.name, artist.name from scrobble, track, artist where track.mbid=track_mbid and artist.mbid=artist_mbid and strftime('%d', date(date, 'unixepoch')) = '11' and strftime('%m', date(date, 'unixepoch')) = '11' and strftime('%Y', date(date, 'unixepoch')) = '2012' order by date;", function(data){
+            query("select strftime('%H:%M', datetime(date, 'unixepoch')) as time, track.name as track, artist.name as artist from scrobble, track, artist where track.mbid=track_mbid and artist.mbid=artist_mbid and strftime('%d', date(date, 'unixepoch')) = '11' and strftime('%m', date(date, 'unixepoch')) = '11' and strftime('%Y', date(date, 'unixepoch')) = '2012' order by date;", function(data){
                 console.log(data);
             });
         }
