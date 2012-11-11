@@ -6,6 +6,15 @@ html, body {
 
 #heatmap {
     padding: 30px;
+    margin-right: 330px;
+}
+
+#sidebar {
+    position: fixed;
+    top: 30px;
+    bottom: 30px;
+    right: 30px;
+    width: 300px;
 }
 
 .day {
