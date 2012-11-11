@@ -132,9 +132,7 @@ $(function(){
                 }
                 var month = $('<div class="month">');
                 for(d = 1; d <= last_day; d++){
-                    var day_object = new Date(y + '/' + pad(m) + '/' + pad(d));
-                    var day_name = day_names[day_object.getDay()];
-                    month.append('<div class="day empty ' + day_name + '" data-year="' + y + '" data-month="' + pad(m) + '" data-day="' + pad(d) + '" title="' + ucfirst(day_name) + ' ' + ordinal(d) + ' ' + ucfirst(month_names[m-1]) + ' ' + y + '"></div>');
+                    month.append('<div class="day empty ' + day_name(d, m, y) + '" data-year="' + y + '" data-month="' + pad(m) + '" data-day="' + pad(d) + '" title="' + human_date(d, m, y) + '"></div>');
                 }
                 $('#heatmap').append(month);
             }
