@@ -125,7 +125,7 @@ $(function(){
                 for(d = 1; d <= last_day; d++){
                     var day_object = new Date(y + '-' + pad(m) + '-' + pad(d));
                     var day_name = day_names[day_object.getDay()];
-                    month.append('<div class="day ' + day_name + '" data-year="' + y + '" data-month="' + pad(m) + '" data-day="' + pad(d) + '" title="' + ucfirst(day_name) + ' ' + ordinal(d) + ' ' + ucfirst(month_names[m-1]) + ' ' + y + '"></div>');
+                    month.append('<div class="day empty ' + day_name + '" data-year="' + y + '" data-month="' + pad(m) + '" data-day="' + pad(d) + '" title="' + ucfirst(day_name) + ' ' + ordinal(d) + ' ' + ucfirst(month_names[m-1]) + ' ' + y + '"></div>');
                 }
                 $('#heatmap').append(month);
             }
@@ -145,6 +145,7 @@ $(function(){
                 
                 $d.removeClass('empty');
                 $d.attr('title', day.n + ' scrobble' + pluralise(day.n) + ' on ' + $d.attr('title'));
+                $d.data('scrobbles', day.n).data('shade', shade);
                 $d.css({
                     zIndex: Math.round(shade * 100),
                     backgroundColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100)),
@@ -154,5 +155,10 @@ $(function(){
         });
     });
     
+    $('#heatmap').on('mouseenter', '.day:not(.empty)', function(){
+        $(this).addClass('hover').css('z-index', 9000);
+    }).on('mouseleave', '.day', function(){
+        $(this).removeClass('hover').css('z-index', Math.round($(this).data('shade') * 100));
+    });
     
 });

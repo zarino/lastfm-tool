@@ -17,6 +17,19 @@ html, body {
     margin: 0 0 -1px -1px;
     -webkit-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.5);
     box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+}
+
+.day.empty {
+    cursor: default;
+}
+
+.day.hover {
+    width: 32px;
+    height: 32px;
+    margin: -1px -1px -2px -2px;
+    -webkit-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.5), 0px 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.5), 0px 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /*
