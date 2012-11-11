@@ -155,11 +155,15 @@ $(function(){
     
     $('#heatmap').on('mouseenter', '.day:not(.empty)', function(){
         $(this).addClass('hover').css('z-index', 9000);
-    }).on('mouseleave', '.day', function(){
+    }).on('mouseleave', '.day:not(.empty)', function(){
         $(this).removeClass('hover').css('z-index', Math.round($(this).data('shade') * 100));
-    }).on('click', '.day', function(){
-        $('#heatmap .selected').removeClass('selected');
-        $(this).addClass('selected');
+    }).on('click', '.day:not(.empty)', function(){
+        if($(this).is('.selected')){
+            $(this).removeClass('selected');
+        } else {
+            $('#heatmap .selected').removeClass('selected');
+            $(this).addClass('selected');
+        }
     });
     
 });
