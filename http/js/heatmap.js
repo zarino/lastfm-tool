@@ -157,6 +157,9 @@ $(function(){
         $(this).addClass('hover').css('z-index', 9000);
     }).on('mouseleave', '.day', function(){
         $(this).removeClass('hover').css('z-index', Math.round($(this).data('shade') * 100));
+    }).on('click', '.day', function(){
+        $('#heatmap .selected').removeClass('selected');
+        $(this).addClass('selected');
     });
     
 });
