@@ -137,7 +137,7 @@ function generate_calendar(y){
         }
         for(i=1; i<=monthLength; i++){
             var dayNo = (startingDay + (i-1)) % 7;
-            $('<div class="day ' + day_names[dayNo] + '" data-year="' + y + '" data-month="' + pad(m+1) + '" data-day="' + pad(i) + '" data-shade="0">' + i + '</div>').on('mouseenter', function(){
+            $('<div class="day ' + day_names[dayNo] + '" title="' + human_date(i, m+1, y) + '" data-year="' + y + '" data-month="' + pad(m+1) + '" data-day="' + pad(i) + '" data-shade="0">' + i + '</div>').on('mouseenter', function(){
                 $(this).addClass('hover').css('z-index', 1000);
             }).on('mouseleave', function(){
                 $(this).removeClass('hover').css('z-index', Math.round($(this).data('shade') * 100));
