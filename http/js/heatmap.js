@@ -170,8 +170,8 @@ $(function(){
         } else {
             $('#heatmap .selected').removeClass('selected');
             $(this).addClass('selected');
-            var d = $(this).data('day');
-            var m = $(this).data('month');
+            var d = $(this).data('day').replace(/^0+/, '');
+            var m = $(this).data('month').replace(/^0+/, '');
             var y = $(this).data('year');
             $('#sidebar').html('<p class="loading">Loading details for ' + human_date(d, m, y).replace(/\s/g, '&nbsp;') + '</p>');
             query("select strftime('%H', datetime(date, 'unixepoch')) as hour, count(date) as n from scrobble where strftime('%d', date(date, 'unixepoch')) = '11' and strftime('%m', date(date, 'unixepoch')) = '11' and strftime('%Y', date(date, 'unixepoch')) = '2012' group by hour order by hour;", function(data){
