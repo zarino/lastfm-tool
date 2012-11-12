@@ -17,6 +17,10 @@ function pad(number, length) {
     return str;
 }
 
+function unpad(thing){
+    return String(thing).replace(/^0+/, '');
+}
+
 function pluralise(number, plural_suffix, singular_suffix){
     var plural_suffix = plural_suffix || 's';
     var singular_suffix = singular_suffix || '';
@@ -186,10 +190,10 @@ $(function(){
         } else {
             $('#heatmap .selected').removeClass('selected');
             $(this).addClass('selected');
-            var d = $(this).data('day').replace(/^0+/, '');
-            var m = $(this).data('month').replace(/^0+/, '');
+            var d = unpad($(this).data('day'));
+            var m = unpad($(this).data('month'));
             var y = $(this).data('year');
-            $('#sidebar').html('<p class="loading">Loading details for ' + human_date(d, m, y).replace(/\s/g, '&nbsp;') + '</p>');
+            $('#sidebar').html('<p class="loading">Loading details for<br/>' + human_date(d, m, y) + '</p>');
             $.when(
                 query("select strftime('%H', datetime(date, 'unixepoch')) as hour, count(date) as n from scrobble where strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' group by hour order by hour;"),
                 query("select strftime('%H:%M', datetime(date, 'unixepoch')) as time, track.name as track, artist.name as artist from scrobble, track, artist where track.mbid=track_mbid and artist.mbid=artist_mbid and strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' order by date;")
