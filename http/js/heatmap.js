@@ -124,8 +124,8 @@ function generate_calendar(min_year, min_month, max_year, max_month){
             }
             $('#heatmap').append(month);
         }
-        $('#heatmap').append('<div class="clearfix">');
-    }
+    }    
+    $('#heatmap').append('<div class="clearfix">');
 }
 
 function plot_calendar_data(data){
