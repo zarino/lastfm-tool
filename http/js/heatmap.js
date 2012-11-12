@@ -1,13 +1,9 @@
-function query(q, callback){
-    $.ajax({
+function query(q){
+    return $.ajax({
         url: 'https://box.scraperwiki.com/zarino/lastfm/f2cf672ac2b8405/sqlite',
         dataType: 'JSON',
         data: {
             q: q
-        },
-        success: callback,
-        error: function(){
-            console.log('jQuery.ajax() error');
         }
     });
 }
@@ -107,6 +103,54 @@ function mix(color1, color2, amount){
     return [h,s,l];
 }
 
+function generate_calendar(min_year, min_month, max_year, max_month){
+    for(y = min_year; y <= max_year; y++){
+        var first_month = 1;
+        var last_month = 12;
+        if(y == min_year){ first_month = min_month; }
+        if(y == max_year){ last_month = max_month; }
+        for(m = first_month; m <= last_month; m++){
+            var last_day = days_in_month[m-1];
+            if (m == 2 && ((y % 4 == 0 && y % 100 != 0) || y % 400 == 0)) { // February only!
+                last_day = 29;
+            }
+            var month = $('<div class="month">');
+            for(d = 1; d <= last_day; d++){
+                month.append('<div class="day empty ' + day_name(d, m, y) + '" data-year="' + y + '" data-month="' + pad(m) + '" data-day="' + pad(d) + '" title="' + human_date(d, m, y) + '"></div>');
+            }
+            $('#heatmap').append(month);
+        }
+        $('#heatmap').append('<div class="clearfix">');
+    }
+}
+
+function plot_calendar_data(data){
+    var max_scrobbles = 0;
+    $.each(data, function(i, day){
+        max_scrobbles = Math.max(max_scrobbles, day.n);
+    });
+    $.each(data, function(i, day){
+        var shade = day.n / max_scrobbles;
+        var hsl_list = mix([0,100,30], [55,100,90], parseFloat(shade).toFixed(3));
+        $d = $('.day[data-year="' + day.y + '"][data-month="' + day.m + '"][data-day="' + day.d + '"]');
+        $d.removeClass('empty').data('scrobbles', day.n).data('shade', shade);
+        $d.attr('title', day.n + ' scrobble' + pluralise(day.n) + ' on ' + $d.attr('title'));
+        $d.css({
+            zIndex: Math.round(shade * 100),
+            backgroundColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100)),
+            borderColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100*0.65))
+        });
+    });
+}
+
+function plot_hourly_graph(hourly_totals){
+    console.log(hourly_totals);
+}
+
+function list_tracks(tracks){
+    console.log(tracks);
+}
+
 var day_names = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 var month_names = ['january','february','march','april','may','june','july','august','september','october','november','december'];
 var days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -115,49 +159,21 @@ $(function(){
 
     $('body').append('<p class="loading">Loading last.fm data</p>');
 
-    query("select strftime('%m', date(min(date), 'unixepoch')) as min_month, strftime('%Y', date(min(date), 'unixepoch')) as min_year, strftime('%m', date(max(date), 'unixepoch')) as max_month, strftime('%Y', date(max(date), 'unixepoch')) as max_year from scrobble;", function(data){
-        var min_year = data[0]['min_year'];
-        var min_month = data[0]['min_month'];
-        var max_year = data[0]['max_year'];
-        var max_month = data[0]['max_month'];
-        for(y = min_year; y <= max_year; y++){
-            var first_month = 1;
-            var last_month = 12;
-            if(y == min_year){ first_month = min_month; }
-            if(y == max_year){ last_month = max_month; }
-            for(m = first_month; m <= last_month; m++){
-                var last_day = days_in_month[m-1];
-                if (m == 2 && ((y % 4 == 0 && y % 100 != 0) || y % 400 == 0)) { // February only!
-                    last_day = 29;
-                }
-                var month = $('<div class="month">');
-                for(d = 1; d <= last_day; d++){
-                    month.append('<div class="day empty ' + day_name(d, m, y) + '" data-year="' + y + '" data-month="' + pad(m) + '" data-day="' + pad(d) + '" title="' + human_date(d, m, y) + '"></div>');
-                }
-                $('#heatmap').append(month);
-            }
-        }
-        $('#heatmap').append('<div class="clearfix">');
+    $.when(
+        query("select strftime('%m', date(min(date), 'unixepoch')) as min_month, strftime('%Y', date(min(date), 'unixepoch')) as min_year, strftime('%m', date(max(date), 'unixepoch')) as max_month, strftime('%Y', date(max(date), 'unixepoch')) as max_year from scrobble;"),
+        query("select strftime('%d', date(date, 'unixepoch')) as d, strftime('%m', date(date, 'unixepoch')) as m, strftime('%Y', date(date, 'unixepoch')) as y, count(date) as n from scrobble group by y, m, d;")
+    ).done(function(boundaries, daily_totals){
         $('p.loading').remove();
-        query("select strftime('%d', date(date, 'unixepoch')) as d, strftime('%m', date(date, 'unixepoch')) as m, strftime('%Y', date(date, 'unixepoch')) as y, count(date) as n from scrobble group by y, m, d;", function(data){
-            var max_scrobbles = 0;
-            $.each(data, function(i, day){
-                max_scrobbles = Math.max(max_scrobbles, day.n);
-            });
-            $.each(data, function(i, day){
-                var shade = day.n / max_scrobbles;
-                var hsl_list = mix([0,100,30], [55,100,90], parseFloat(shade).toFixed(3));
-                $d = $('.day[data-year="' + day.y + '"][data-month="' + day.m + '"][data-day="' + day.d + '"]');
-                
-                $d.removeClass('empty').data('scrobbles', day.n).data('shade', shade);
-                $d.attr('title', day.n + ' scrobble' + pluralise(day.n) + ' on ' + $d.attr('title'));
-                $d.css({
-                    zIndex: Math.round(shade * 100),
-                    backgroundColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100)),
-                    borderColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100*0.65))
-                });
-            });
-        });
+        generate_calendar(
+            boundaries[0][0]['min_year'],
+            boundaries[0][0]['min_month'],
+            boundaries[0][0]['max_year'],
+            boundaries[0][0]['max_month']
+        );
+        plot_calendar_data(daily_totals[0]);
+    }).fail(function(){
+        $('p.loading').remove();
+        alert('There was a problem contacting the API');
     });
     
     $('#heatmap').on('mouseenter', '.day:not(.empty)', function(){
@@ -174,11 +190,16 @@ $(function(){
             var m = $(this).data('month').replace(/^0+/, '');
             var y = $(this).data('year');
             $('#sidebar').html('<p class="loading">Loading details for ' + human_date(d, m, y).replace(/\s/g, '&nbsp;') + '</p>');
-            query("select strftime('%H', datetime(date, 'unixepoch')) as hour, count(date) as n from scrobble where strftime('%d', date(date, 'unixepoch')) = '11' and strftime('%m', date(date, 'unixepoch')) = '11' and strftime('%Y', date(date, 'unixepoch')) = '2012' group by hour order by hour;", function(data){
-                console.log(data);
-            });
-            query("select strftime('%H:%M', datetime(date, 'unixepoch')) as time, track.name as track, artist.name as artist from scrobble, track, artist where track.mbid=track_mbid and artist.mbid=artist_mbid and strftime('%d', date(date, 'unixepoch')) = '11' and strftime('%m', date(date, 'unixepoch')) = '11' and strftime('%Y', date(date, 'unixepoch')) = '2012' order by date;", function(data){
-                console.log(data);
+            $.when(
+                query("select strftime('%H', datetime(date, 'unixepoch')) as hour, count(date) as n from scrobble where strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' group by hour order by hour;"),
+                query("select strftime('%H:%M', datetime(date, 'unixepoch')) as time, track.name as track, artist.name as artist from scrobble, track, artist where track.mbid=track_mbid and artist.mbid=artist_mbid and strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' order by date;")
+            ).done(function(hourly_totals, tracks){
+                $('#sidebar p.loading').remove();
+                plot_hourly_graph(hourly_totals[0]);
+                list_tracks(tracks[0]);
+            }).fail(function(){
+                $('#sidebar p.loading').remove();
+                alert('There was a problem contacting the API');
             });
         }
     });
