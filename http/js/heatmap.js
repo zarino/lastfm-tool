@@ -91,7 +91,7 @@ function hslToRgb(h, s, l){
 
 function rgbToHex(r, g, b) {
     // r, g, b must be numbers between 0 and 255
-    // will return a 6-character hex string, prepended with '#' 
+    // will return a 6-character hex string, prepended with '#'
     return "#" + ((1 << 24) + (Math.round(r) << 16) + (Math.round(g) << 8) + Math.round(b)).toString(16).slice(1);
 }
 
@@ -100,7 +100,7 @@ function mix(color1, color2, amount){
     var hsl1 = [+color1[0], +color1[1], +color1[2]];
     var hsl2 = [+color2[0], +color2[1], +color2[2]];
     if(hsl1[0] > hsl2[0]) {
-        var t = hsl1;                        
+        var t = hsl1;
         hsl1 = hsl2;
         hsl2 = t;
     }
@@ -118,8 +118,8 @@ function mix(color1, color2, amount){
     return [h,s,l];
 }
 
-function generate_calendar(y){
-    var y = y || 2012;
+function generate_calendar(y, scrobbles_per_day){
+    $('#calendar').empty();
     for(m=0; m<12; m++){
         var firstDay = new Date(y, m, 1);
         var startingDay = firstDay.getDay();
@@ -137,33 +137,7 @@ function generate_calendar(y){
         }
         for(i=1; i<=monthLength; i++){
             var dayNo = (startingDay + (i-1)) % 7;
-            $('<div class="day ' + day_names[dayNo] + '" title="' + human_date(i, m+1, y) + '" data-year="' + y + '" data-month="' + pad(m+1) + '" data-day="' + pad(i) + '" data-shade="0">' + i + '</div>').on('mouseenter', function(){
-                $(this).addClass('hover').css('z-index', 1000);
-            }).on('mouseleave', function(){
-                $(this).removeClass('hover').css('z-index', Math.round($(this).data('shade') * 100));
-            }).on('click', function(){
-                if($(this).is('.selected')){
-                    $(this).removeClass('selected');
-                } else {
-                    $('#calendar .selected').removeClass('selected');
-                    $(this).addClass('selected');
-                    var d = unpad($(this).data('day'));
-                    var m = unpad($(this).data('month'));
-                    var y = $(this).data('year');
-                    $('#sidebar').html('<p class="loading">Loading details for<br/>' + human_date(d, m, y) + '</p>');
-                    $.when(
-                        query("select strftime('%H', datetime(date, 'unixepoch')) as hour, count(date) as n from scrobble where strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' group by hour order by hour;"),
-                        query("select strftime('%H:%M', datetime(date, 'unixepoch')) as time, track.name as track, artist.name as artist from scrobble, track, artist where track.mbid=track_mbid and artist.mbid=artist_mbid and strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' order by date;")
-                    ).done(function(hourly_totals, tracks){
-                        $('#sidebar p.loading').remove();
-                        plot_hourly_graph(hourly_totals[0]);
-                        list_tracks(tracks[0]);
-                    }).fail(function(){
-                        $('#sidebar p.loading').remove();
-                        alert('There was a problem contacting the API');
-                    });
-                }
-            }).appendTo($month);
+            $('<div class="day ' + day_names[dayNo] + '" title="' + human_date(i, m+1, y) + '" data-year="' + y + '" data-month="' + pad(m+1) + '" data-day="' + pad(i) + '" data-shade="0">' + i + '</div>').appendTo($month);
         }
         for(i=1; i<=daysAfter; i++){
             var dayNo = (startingDay + monthLength + i - 1) % 7;
@@ -173,14 +147,26 @@ function generate_calendar(y){
         $month.appendTo('#calendar');
     }
     $('#calendar').append('<div class="clearfix">');
-}
 
-function plot_calendar_data(data){
+    var min_year = scrobbles_per_day[0]['y'];
+    var max_year = scrobbles_per_day[ scrobbles_per_day.length - 1 ]['y'];
+    $('#current_year').text(y);
+    if (min_year >= y){
+        $('#prev_year').addClass('disabled');
+    } else {
+        $('#prev_year').removeClass('disabled');
+    }
+    if (max_year <= y){
+        $('#next_year').addClass('disabled');
+    } else {
+        $('#next_year').removeClass('disabled');
+    }
+
     var max_scrobbles = 0;
-    $.each(data, function(i, day){
+    $.each(scrobbles_per_day, function(i, day){
         max_scrobbles = Math.max(max_scrobbles, day.n);
     });
-    $.each(data, function(i, day){
+    $.each(scrobbles_per_day, function(i, day){
         var shade = day.n / max_scrobbles;
         var hsl_list = mix([0,100,30], [55,100,90], parseFloat(shade).toFixed(3));
         $d = $('.day[data-year="' + day.y + '"][data-month="' + day.m + '"][data-day="' + day.d + '"]');
@@ -191,7 +177,36 @@ function plot_calendar_data(data){
             backgroundColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100)),
             borderColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100*0.65))
         });
+        $d.on('mouseenter', function(){
+            $(this).addClass('hover').css('z-index', 1000);
+        }).on('mouseleave', function(){
+            $(this).removeClass('hover').css('z-index', Math.round($(this).data('shade') * 100));
+        }).on('click', select_a_day)
     });
+}
+
+function select_a_day(){
+    if($(this).is('.selected')){
+        $(this).removeClass('selected');
+    } else {
+        $('#calendar .selected').removeClass('selected');
+        $(this).addClass('selected');
+        var d = unpad($(this).data('day'));
+        var m = unpad($(this).data('month'));
+        var y = $(this).data('year');
+        $('#sidebar').html('<p class="loading">Loading details for<br/>' + human_date(d, m, y) + '</p>');
+        $.when(
+            query("select strftime('%H', datetime(date, 'unixepoch')) as hour, count(date) as n from scrobble where strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' group by hour order by hour;"),
+            query("select strftime('%H:%M', datetime(date, 'unixepoch')) as time, track.name as track, artist.name as artist from scrobble, track, artist where track.mbid=track_mbid and artist.mbid=artist_mbid and strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' order by date;")
+        ).done(function(hourly_totals, tracks){
+            $('#sidebar p.loading').remove();
+            plot_hourly_graph(hourly_totals[0]);
+            list_tracks(tracks[0]);
+        }).fail(function(){
+            $('#sidebar p.loading').remove();
+            alert('There was a problem contacting the API');
+        });
+    }
 }
 
 function plot_hourly_graph(hourly_totals){
@@ -210,13 +225,32 @@ $(function(){
 
     $('body').append('<p class="loading">Loading last.fm data</p>');
 
-    query("select strftime('%d', date(date, 'unixepoch')) as d, strftime('%m', date(date, 'unixepoch')) as m, strftime('%Y', date(date, 'unixepoch')) as y, count(date) as n from scrobble group by y, m, d;").success(function(daily_totals){
+    var scrobbles_per_day = null;
+    var current_year = (new Date()).getFullYear();
+
+    query("select strftime('%d', date(date, 'unixepoch')) as d, strftime('%m', date(date, 'unixepoch')) as m, strftime('%Y', date(date, 'unixepoch')) as y, count(date) as n from scrobble group by y, m, d;").success(function(data){
         $('p.loading').remove();
-        generate_calendar(2012);
-        plot_calendar_data(daily_totals);
+        scrobbles_per_day = data;
+        generate_calendar(current_year, scrobbles_per_day);
     }).error(function(){
         $('p.loading').remove();
         alert('There was a problem contacting the API');
     });
-    
+
+    $('#current_year').on('click', function(){
+        generate_calendar(current_year, scrobbles_per_day);
+    });
+    $('#prev_year').on('click', function(){
+        if(!$(this).is('.disabled')){
+            var year = parseInt($('#current_year').text());
+            generate_calendar(year - 1, scrobbles_per_day);
+        }
+    });
+    $('#next_year').on('click', function(){
+        if(!$(this).is('.disabled')){
+            var year = parseInt($('#current_year').text());
+            generate_calendar(year + 1, scrobbles_per_day);
+        }
+    });
+
 });
