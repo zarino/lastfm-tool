@@ -79,6 +79,10 @@ header .btn {
     box-shadow: none;
 }
 
+.day.no-scrobbles {
+    cursor: default;
+}
+
 .day.monday {
     clear: left;
 }
