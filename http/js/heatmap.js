@@ -191,7 +191,12 @@ function generate_calendar(y, scrobbles_per_day){
         $d.on('mouseenter', function(){
             $(this).addClass('hover').css('z-index', 1000);
         }).on('mouseleave', function(){
-            $(this).removeClass('hover').css('z-index', Math.round($(this).data('shade') * 100));
+            if($(this).is('.selected')){
+                var zIndex = 900;
+            } else {
+                var zIndex = $(this).data('shade') * 100;
+            }
+            $(this).removeClass('hover').css('z-index', Math.round(zIndex));
         }).on('click', select_a_day)
     });
 }
@@ -202,6 +207,7 @@ function select_a_day(){
         var shade = $(this).data('shade');
         $(this).removeClass('selected');
         $(this).css({
+            zIndex: Math.round(shade * 100),
             backgroundColor: background_colour(shade),
             borderColor: border_colour(shade)
         });
@@ -209,6 +215,7 @@ function select_a_day(){
     if(!$d.is('.selected')){
         $d.addClass('selected');
         $d.css({
+            zIndex: 900,
             backgroundColor: '#1E90FF',
             borderColor: '#07529B'
         });
