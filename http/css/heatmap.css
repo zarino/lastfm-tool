@@ -98,16 +98,9 @@ header .btn {
 }
 
 .day.selected {
-    border-width: 5px;
-    width: 22px;
-    height: 22px;
-    line-height: 22px;
-}
-
-.day.hover.selected {
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
+    color: #fff;
+    text-shadow: 0 1px 2px #07529B;
+    font-weight: bold;
 }
 
 p.loading {

@@ -118,6 +118,18 @@ function mix(color1, color2, amount){
     return [h,s,l];
 }
 
+function background_colour(shade) {
+    // shade should be a float between 0 and 1
+    var hsl_list = mix([0,100,30], [55,100,90], parseFloat(shade).toFixed(3));
+    return rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100))
+}
+
+function border_colour(shade){
+    // shade should be a float between 0 and 1
+    var hsl_list = mix([0,100,30], [55,100,90], parseFloat(shade).toFixed(3));
+    return rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100*0.65))
+}
+
 function generate_calendar(y, scrobbles_per_day){
     $('#calendar').empty();
     for(m=0; m<12; m++){
@@ -168,14 +180,13 @@ function generate_calendar(y, scrobbles_per_day){
     });
     $.each(scrobbles_per_day, function(i, day){
         var shade = day.n / max_scrobbles;
-        var hsl_list = mix([0,100,30], [55,100,90], parseFloat(shade).toFixed(3));
         $d = $('.day[data-year="' + day.y + '"][data-month="' + day.m + '"][data-day="' + day.d + '"]');
-        $d.removeClass('no-scrobbles').data('scrobbles', day.n).data('shade', shade);
+        $d.removeClass('no-scrobbles').attr('data-scrobbles', day.n).attr('data-shade', shade);
         $d.attr('title', day.n + ' scrobble' + pluralise(day.n) + ' on ' + $d.attr('title'));
         $d.css({
             zIndex: Math.round(shade * 100),
-            backgroundColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100)),
-            borderColor: rgbToHex.apply(this, hslToRgb(hsl_list[0]/360, hsl_list[1]/100, hsl_list[2]/100*0.65))
+            backgroundColor: background_colour(shade),
+            borderColor: border_colour(shade)
         });
         $d.on('mouseenter', function(){
             $(this).addClass('hover').css('z-index', 1000);
@@ -186,14 +197,24 @@ function generate_calendar(y, scrobbles_per_day){
 }
 
 function select_a_day(){
-    if($(this).is('.selected')){
+    var $d = $(this);
+    $('#calendar .selected').each(function(){
+        var shade = $(this).data('shade');
         $(this).removeClass('selected');
-    } else {
-        $('#calendar .selected').removeClass('selected');
-        $(this).addClass('selected');
-        var d = unpad($(this).data('day'));
-        var m = unpad($(this).data('month'));
-        var y = $(this).data('year');
+        $(this).css({
+            backgroundColor: background_colour(shade),
+            borderColor: border_colour(shade)
+        });
+    });
+    if(!$d.is('.selected')){
+        $d.addClass('selected');
+        $d.css({
+            backgroundColor: '#1E90FF',
+            borderColor: '#07529B'
+        });
+        var d = unpad($d.data('day'));
+        var m = unpad($d.data('month'));
+        var y = $d.data('year');
         $('#sidebar').html('<p class="loading">Loading details for<br/>' + human_date(d, m, y) + '</p>');
         $.when(
             query("select strftime('%H', datetime(date, 'unixepoch')) as hour, count(date) as n from scrobble where strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' group by hour order by hour;"),
