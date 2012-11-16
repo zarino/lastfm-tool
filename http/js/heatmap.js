@@ -228,6 +228,7 @@ function select_a_day(){
             query("select strftime('%H:%M', datetime(date, 'unixepoch')) as time, track.name as track, artist.name as artist from scrobble, track, artist where track.mbid=track_mbid and artist.mbid=artist_mbid and strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' order by date;")
         ).done(function(hourly_totals, tracks){
             $('#sidebar p.loading').remove();
+            $('#sidebar').append('<h2>' + human_date(d, m, y) + '</h2>');
             plot_hourly_graph(hourly_totals[0]);
             list_tracks(tracks[0]);
         }).fail(function(){

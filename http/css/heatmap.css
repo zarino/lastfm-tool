@@ -12,7 +12,7 @@ header {
     z-index: 2000;
     background-color: #fff;
     background-color: rgba(255,255,255,0.9);
-    padding: 30px 30px 20px 30px;
+    padding: 25px 30px 20px 30px;
     border-bottom: 2px solid #fff;
 }
 
@@ -33,15 +33,26 @@ header .btn {
 }
 
 #calendar {
-    padding: 50px 360px 30px 0;
+    padding: 45px 360px 30px 0;
 }
 
 #sidebar {
     position: fixed;
-    top: 30px;
-    bottom: 30px;
-    right: 30px;
-    width: 300px;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 269px;
+    padding: 25px 30px 30px 30px;
+    border-left: 1px solid #e3e3e3;
+    background: #f8f8f8;
+}
+
+#sidebar h2 {
+    margin: 0;
+    font-size: 23px;
+    line-height: 26px;
+    font-weight: 200;
+    color: #666;
 }
 
 .month {
