@@ -8,7 +8,7 @@ header {
     position: fixed;
     top: 0;
     left: 0;
-    right: 330px;
+    right: 380px;
     z-index: 2000;
     background-color: #fff;
     background-color: rgba(255,255,255,0.9);
@@ -33,7 +33,7 @@ header .btn {
 }
 
 #calendar {
-    padding: 45px 360px 30px 0;
+    padding: 45px 410px 30px 0;
 }
 
 #sidebar {
@@ -41,7 +41,7 @@ header .btn {
     top: 0;
     bottom: 0;
     right: 0;
-    width: 270px;
+    width: 320px;
     padding: 25px 30px 30px 29px;
     border-left: 1px solid #e3e3e3;
     background: #f8f8f8;
@@ -138,7 +138,7 @@ p.loading {
 }
 
 #hourly_graph {
-    width: 270px;
+    width: 320px;
     height: 200px;
     margin-top: 10px;
 }
