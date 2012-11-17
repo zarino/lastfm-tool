@@ -236,7 +236,7 @@ function select_a_day(){
                 bars.push([i,0]);
             }
             $.each(hourly_totals[0], function(i, t){
-                bars[t.hour] = [t.hour, t.n];
+                bars[t.hour.replace(/^0/, '')] = [t.hour.replace(/^0/, ''), t.n];
             });
             var $graph = $('<div id="hourly_graph">').appendTo('#sidebar');
             $.plot($graph, [bars], {
