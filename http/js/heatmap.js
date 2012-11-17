@@ -251,7 +251,13 @@ function select_a_day(){
                 }
             });
 
-            console.log(tracks);
+            $('#sidebar').append('<h3>Tracks Zarino listened to:</h3>');
+            var $tracks = $('<ul id="tracks">').appendTo('#sidebar');
+
+            $.each(tracks[0], function(i,track){
+                $tracks.append('<li><strong class="track" title="' + track['track'] + '">' + track['track'] + '</strong> <span class="artist" title="' + track['artist'] + '">' + track['artist'] + '</span> <span class="time">' + track['time'] + '</span></li>');
+            });
+
         }).fail(function(){
             $('#sidebar p.loading').remove();
             alert('There was a problem contacting the API');
