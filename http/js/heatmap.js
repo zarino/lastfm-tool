@@ -244,7 +244,7 @@ function select_a_day(){
                     { xaxis: { from: 0, to: 6 }, color: "#eeeeee" },
                     { xaxis: { from: 18, to: 24 }, color: "#eeeeee" }
                 ]},
-                xaxis: { min: 0, max: 24, ticks: 12 },
+                xaxis: { min: 0, max: 24, ticks: 12, tickFormatter: function(val){ return pad(val,2); } },
                 yaxis: { minTickSize: 1, tickDecimals: 0 },
                 series: {
                     bars: {  show: true, lineWidth: 0, fillColor: '#1E90FF' }
