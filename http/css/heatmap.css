@@ -129,12 +129,16 @@ p.loading {
     position: absolute;
     top: 50%;
     left: 0;
-    right: 0;
+    right: 380px;
     z-index: 9000;
     margin-top: -40px;
     padding-top: 40px;
     text-align: center;
     background: transparent url(../img/loader-32px-000-fff.gif) center top no-repeat;
+}
+
+#sidebar p.loading {
+    right: 0;
 }
 
 #hourly_graph {
