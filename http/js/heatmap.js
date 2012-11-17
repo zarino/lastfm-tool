@@ -229,21 +229,34 @@ function select_a_day(){
         ).done(function(hourly_totals, tracks){
             $('#sidebar p.loading').remove();
             $('#sidebar').append('<h2>' + human_date(d, m, y) + '</h2>');
-            plot_hourly_graph(hourly_totals[0]);
-            list_tracks(tracks[0]);
+            $('#sidebar').append('<h3>Scrobbles by time of day:</h3>');
+
+            bars = [];
+            for(i=0;i<24;i++){
+                bars.push([i,0]);
+            }
+            $.each(hourly_totals[0], function(i, t){
+                bars[t.hour] = [t.hour, t.n];
+            });
+            var $graph = $('<div id="hourly_graph">').appendTo('#sidebar');
+            $.plot($graph, [bars], {
+                grid: { borderWidth: 0, markings: [
+                    { xaxis: { from: 0, to: 6 }, color: "#eeeeee" },
+                    { xaxis: { from: 18, to: 24 }, color: "#eeeeee" }
+                ]},
+                xaxis: { min: 0, max: 24, ticks: 12 },
+                yaxis: { minTickSize: 1, tickDecimals: 0 },
+                series: {
+                    bars: {  show: true, lineWidth: 0, fillColor: '#1E90FF' }
+                }
+            });
+
+            console.log(tracks);
         }).fail(function(){
             $('#sidebar p.loading').remove();
             alert('There was a problem contacting the API');
         });
     }
-}
-
-function plot_hourly_graph(hourly_totals){
-    console.log(hourly_totals);
-}
-
-function list_tracks(tracks){
-    console.log(tracks);
 }
 
 var day_names = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];

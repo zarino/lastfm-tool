@@ -41,8 +41,8 @@ header .btn {
     top: 0;
     bottom: 0;
     right: 0;
-    width: 269px;
-    padding: 25px 30px 30px 30px;
+    width: 270px;
+    padding: 25px 30px 30px 29px;
     border-left: 1px solid #e3e3e3;
     background: #f8f8f8;
 }
@@ -52,6 +52,13 @@ header .btn {
     font-size: 23px;
     line-height: 26px;
     font-weight: 200;
+    color: #666;
+}
+
+#sidebar h3 {
+    margin: 20px 0;
+    font-size: 14px;
+    line-height: 18px;
     color: #666;
 }
 
@@ -120,8 +127,14 @@ p.loading {
     left: 0;
     right: 0;
     z-index: 9000;
-    margin-top: -30px;
+    margin-top: -40px;
     padding-top: 40px;
     text-align: center;
     background: transparent url(../img/loader-32px-000-fff.gif) center top no-repeat;
+}
+
+#hourly_graph {
+    width: 270px;
+    height: 200px;
+    margin-top: 10px;
 }
