@@ -53,6 +53,10 @@ header .btn {
     line-height: 26px;
     font-weight: 200;
     color: #666;
+    /* this is such a hack */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #sidebar h3 {
@@ -156,16 +160,13 @@ p.loading {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding-left: 3.2em;
+    line-height: 21px;
 }
 
 #tracks .track {
-    margin-right: 5px;
+    margin: 0 5px;
 }
 
 #tracks .time {
-    position: absolute;
-    top: 0;
-    left: 0;
-    color: #ccc;
+    color: #aaa;
 }

@@ -251,11 +251,11 @@ function select_a_day(){
                 }
             });
 
-            $('#sidebar').append('<h3>Tracks Zarino listened to:</h3>');
+            $('#sidebar').append('<h3>Zarino listened to ' + tracks[0].length + ' track' + pluralise(tracks[0].length) + ':</h3>');
             var $tracks = $('<ul id="tracks">').appendTo('#sidebar');
 
             $.each(tracks[0], function(i,track){
-                $tracks.append('<li><strong class="track" title="' + track['track'] + '">' + track['track'] + '</strong> <span class="artist" title="' + track['artist'] + '">' + track['artist'] + '</span> <span class="time">' + track['time'] + '</span></li>');
+                $tracks.append('<li><span class="time">' + track['time'] + '</span> <strong class="track" title="' + track['track'] + '">' + track['track'] + '</strong> <span class="artist" title="' + track['artist'] + '">' + track['artist'] + '</span></li>');
             });
 
         }).fail(function(){
