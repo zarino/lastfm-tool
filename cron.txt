@@ -2,4 +2,4 @@
 # install this cron script by running:
 # $ crontab cron.txt
 
-@daily ./scraper.py > cron.log 2>&1
+@daily ./scraper.py >> cron.log 2>&1
