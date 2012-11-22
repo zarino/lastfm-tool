@@ -224,8 +224,8 @@ function select_a_day(){
         var y = $d.data('year');
         $('#sidebar').html('<p class="loading">Loading details for<br/>' + human_date(d, m, y) + '</p>');
         $.when(
-            query("select strftime('%H', datetime(date, 'unixepoch')) as hour, count(date) as n from scrobble where strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' group by hour order by hour;"),
-            query("select strftime('%H:%M', datetime(date, 'unixepoch')) as time, track.name as track, artist.name as artist from scrobble, track, artist where track.mbid=track_mbid and artist.mbid=artist_mbid and strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' order by date;")
+            query("select strftime('%H', datetime(date, 'unixepoch')) as hour, count(date) as n from recenttracks where strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' group by hour order by hour;"),
+            query("select strftime('%H:%M', datetime(date, 'unixepoch')) as time, track, artist from recenttracks where strftime('%d', date(date, 'unixepoch')) = '" + pad(d) + "' and strftime('%m', date(date, 'unixepoch')) = '" + pad(m) + "' and strftime('%Y', date(date, 'unixepoch')) = '" + y + "' order by date;")
         ).done(function(hourly_totals, tracks){
             $('#sidebar p.loading').remove();
             $('#sidebar').append('<h2>' + human_date(d, m, y) + '</h2>');
@@ -276,7 +276,7 @@ $(function(){
     var scrobbles_per_day = null;
     var current_year = (new Date()).getFullYear();
 
-    query("select strftime('%d', date(date, 'unixepoch')) as d, strftime('%m', date(date, 'unixepoch')) as m, strftime('%Y', date(date, 'unixepoch')) as y, count(date) as n from scrobble group by y, m, d;").success(function(data){
+    query("select strftime('%d', date(date, 'unixepoch')) as d, strftime('%m', date(date, 'unixepoch')) as m, strftime('%Y', date(date, 'unixepoch')) as y, count(date) as n from recenttracks group by y, m, d;").success(function(data){
         $('p.loading').remove();
         scrobbles_per_day = data;
         generate_calendar(current_year, scrobbles_per_day);
