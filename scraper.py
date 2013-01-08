@@ -6,7 +6,8 @@ import sqlite3
 import dumptruck
 import time
 
-requests.defaults.defaults['max_retries'] = 5
+# Doesn't work in the new version of Requests
+# requests.defaults.defaults['max_retries'] = 5
 
 # Settings
 user = 'zarino'
