@@ -1,5 +1,5 @@
-# ScraperWiki Box: zarino/lastfm #
+# ScraperWiki tool: Scrape your Last.fm history #
 
-https://box.scraperwiki.com/zarino/lastfm
+This is a ScraperWiki tool that lets Last.fm users scrape their entire scrobble history – or, indeed, the entire history of *any* Last.fm user.
 
-Describe your box in here!
+It doesn't need to use OAuth, since scrobble data is public.
