@@ -9,10 +9,142 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
 		<script src="http://x.scraperwiki.com/vendor/js/bootstrap.min.js"></script>
 		<style>
-		body { padding: 20px; }
+		body {
+      padding: 20px;
+      text-align: center;
+    }
+    label {
+      font-size: 16px;
+      line-height: 20px;
+      margin-bottom: 10px;
+      color: #666666;
+    }
+    #username {
+      width: 7em;
+      font-size: 21px;
+      line-height: 32px;
+      height: 32px;
+      padding-left: 10px;
+    }
+    #import {
+      line-height: 32px;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    #import.loading {
+      background-position: 12px 12px;
+      padding-left: 36px;
+    }
+    #avatar img {
+      height: 40px;
+      -webkit-border-radius: 2px;
+      -moz-border-radius: 2px;
+      border-radius: 2px;
+      border: 1px solid #ccc;
+      -webkit-border-radius: 2px 0 0 2px;
+      -moz-border-radius: 2px 0 0 2px;
+      border-radius: 2px 0 0 2px;
+      border-right: none;
+    }
+    #avatar.empty {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      background: #eee url(user.png) 50% 50% no-repeat;
+      -webkit-border-radius: 2px;
+      -moz-border-radius: 2px;
+      border-radius: 2px;
+      border: 1px solid #ccc;
+      -webkit-border-radius: 2px 0 0 2px;
+      -moz-border-radius: 2px 0 0 2px;
+      border-radius: 2px 0 0 2px;
+      border-right: none;
+    }
+    #feedback img {
+      vertical-align: -2px;
+      margin-right: 3px;
+    }
 		</style>
   </head>
   <body>
-		<h1>Hello World!</h1>
+    <label for="username">Import scrobbles for user:</label>
+    <div class="input-append">
+      <input id="username" type="text">
+      <button class="btn" type="button" id="import">Import <i class="icon-chevron-right"></i></button>
+    </div>
+    <p id="feedback"></p>
+    <script type="text/javascript">
+    
+    function feedback(html, type){
+      if(html==false){
+        $('#feedback').empty()
+      } else {
+        $('#feedback').html(html).removeClass().addClass('text-' + type)
+      }
+    }
+    
+    function loading(bool){
+      if(bool){
+        $('#import').addClass('loading').html('Importing&hellip;')
+      } else {
+        $('#import').removeClass('loading').html('Import <i class="icon-chevron-right"></i>')
+      }
+    }
+    
+    function avatar(img, url){
+      console.log(img, url)
+      if(img==false && typeof(url)=='undefined'){
+        $('#avatar').remove()
+      } else {
+        $('#username').parent().addClass('input-prepend')
+        if(img!=''){
+          $('<a id="avatar" href="' + url + '" target="_blank"><img src="' + img + '" /></a>').insertBefore('#username')
+        } else {
+          $('<a id="avatar" class="empty" href="' + url + '" target="_blank"></a>').insertBefore('#username')
+        }
+      }
+    }
+
+    $('#import').on('click', function(){
+      loading(true)
+      avatar(false)
+      $.ajax({
+        url: 'http://ws.audioscrobbler.com/2.0/',
+        data: {
+          method: 'user.getinfo',
+          user: $('#username').val(),
+          api_key: '12b5aaf2b0f27b4b9402b391c956a88a',
+          format: 'json'
+        }, dataType: 'json'
+      }).done(function(data){
+        if('user' in data){
+          avatar(data.user.image[1]['#text'], data.user.url)
+          if(data.user.playcount == '0'){
+            loading(false)
+            feedback('<img src="exclamation.png" width="16" height="16" /> That user hasn&rsquo;t listened to anything!', 'error')
+          } else {
+            feedback(false)
+          }
+        } else if('error' in data){
+          loading(false)
+          avatar(false)
+          if(data.message == 'No user with that name was found'){
+            feedback('<img src="user-unknown.png" width="16" height="16" /> Sorry, that user doesn&rsquo;t exist.', 'error')
+          } else {
+            feedback('<img src="exclamation.png" width="16" height="16" /> Unexpected error from Last.fm API: ' + data.message, 'error')
+          }
+        }
+      }).fail(function(){
+        feedback('<img src="exclamation.png" width="16" height="16" /> Unable to contact Last.fm API.', 'error')
+      })
+    })
+
+    $('#username').on('keypress', function(e){
+      if(e.which == 13){
+        $('#import').trigger('click')
+      }
+    })
+
+    </script>
   </body>
 </html>
