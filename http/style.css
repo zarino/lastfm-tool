@@ -18,6 +18,11 @@ label {
   padding-left: 10px;
 }
 
+#username[disabled] {
+  background-color: white;
+  color: #999;
+}
+
 #import {
   line-height: 32px;
   padding-left: 16px;
