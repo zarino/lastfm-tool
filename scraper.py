@@ -18,6 +18,13 @@ user = args[0] if args else 'zarino'
 api_key = '12b5aaf2b0f27b4b9402b391c956a88a'
 per_page = 200
 
+def main():
+    now = int(time.time())
+    dt = dumptruck.DumpTruck(dbname="scraperwiki.sqlite")
+
+    getRecentTracks()
+    getInfo()
+
 def getRecentTracks():
     print "Scraping %s.getRecentTracks..." % user
 
@@ -159,9 +166,4 @@ def getInfo():
     }, "info")
     print '  All done!'
 
-
-now = int(time.time())
-dt = dumptruck.DumpTruck(dbname="lastfm.sqlite")
-
-getRecentTracks()
-getInfo()
+main()
