@@ -62,13 +62,31 @@ $(function(){
       }, dataType: 'json'
     }).done(function(data){
       if('user' in data){
+        var playcount = data.user.playcount
         avatar(data.user.image[1]['#text'], data.user.url)
-        if(data.user.playcount == '0'){
+        if(playcount == '0'){
           loading(false)
           feedback('<img src="exclamation.png" width="16" height="16" /> That user hasn&rsquo;t listened to anything!', 'error')
         } else {
-          feedback('Starting up&hellip;', 'progress')
-          progress(10)
+          feedback('Starting import&hellip;', 'progress')
+          progress(0)
+          // Start scraper.py, and background it (end the exec command in a "&")
+          // so the script continues to run after the exec call has ended
+          scraperwiki.exec('echo "foobar" &', function(data){
+            // We assume the script has started.
+            // Poll the sqlite endpoint every 10 seconds to monitor for new rows.
+            var poll = setInterval(function(){
+              scraperwiki.sql('SELECT COUNT(*) AS n FROM recenttracks;', function(data){
+                console.log(data, playcount)
+              }, function(jqXHR, textStatus, errorThrown){
+                console.log('Oh no! Error:', jqXHR.responseText, textStatus, errorThrown)
+              })
+            }, 10000)
+            // We also need to set the crontab, so the script runs again every day
+            scraperwiki.exec('echo "set crontab here"')
+          }, function(jqXHR, textStatus, errorThrown){
+            console.log('Oh no! Error:', jqXHR.responseText, textStatus, errorThrown)
+          })
         }
       } else if('error' in data){
         loading(false)
