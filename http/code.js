@@ -18,10 +18,17 @@ function loading(bool){
 function progress(percentage){
   if(typeof(percentage)=='number' && percentage >= 0 && percentage <= 100){
     if($('.progress').length){
-      $('.progress .bar').css('width', percentage+'%')
+      var p = $('.progress')
     } else {
-      $('body').append('<div class="progress progress-striped progress-danger active"><div class="bar" style="width: ' + percentage + '%"></div></div>')
+      var p = $('<div class="progress progress-danger">').append('<div class="bar">')
+      p.appendTo('body')
     }
+    if(percentage == 100){
+      p.removeClass('active progress-striped')
+    } else {
+      p.addClass('active progress-striped')
+    }
+    $('.bar', p).css('width', percentage+'%')
   } else {
     $('.progress').remove()
   }
