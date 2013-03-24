@@ -50,7 +50,7 @@ function avatar(img, url){
 function trackProgress(){
   scraperwiki.sql('SELECT COUNT(*) AS n FROM recenttracks WHERE user="' + username + '";', function(data){
     var got = data[0]['n']
-    feedback("Imported " + numberWithCommas(got) + " of " + numberWithCommas(playcount) + " tracks", 'progress')
+    feedback("Imported " + numberWithCommas(got) + " of " + numberWithCommas(playcount) + " scrobbles", 'progress')
     progress(got/playcount*100)
     if(got >= playcount){
       clearTimeout(poll)
