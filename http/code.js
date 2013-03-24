@@ -1,4 +1,5 @@
 function feedback(html, type){
+  type = type || 'info'
   if(html==false){
     $('#feedback').empty()
   } else {
@@ -11,6 +12,18 @@ function loading(bool){
     $('#import').addClass('loading').html('Importing&hellip;')
   } else {
     $('#import').removeClass('loading').html('Import <i class="icon-chevron-right"></i>')
+  }
+}
+
+function progress(percentage){
+  if(typeof(percentage)=='number' && percentage >= 0 && percentage <= 100){
+    if($('.progress').length){
+      $('.progress .bar').css('width', percentage+'%')
+    } else {
+      $('body').append('<div class="progress progress-striped progress-danger active"><div class="bar" style="width: ' + percentage + '%"></div></div>')
+    }
+  } else {
+    $('.progress').remove()
   }
 }
 
@@ -47,7 +60,8 @@ $(function(){
           loading(false)
           feedback('<img src="exclamation.png" width="16" height="16" /> That user hasn&rsquo;t listened to anything!', 'error')
         } else {
-          feedback(false)
+          feedback('Starting up&hellip;', 'progress')
+          progress(10)
         }
       } else if('error' in data){
         loading(false)
