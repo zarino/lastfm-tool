@@ -9,6 +9,7 @@ import sqlite3
 import dumptruck
 import time
 import optparse
+from __future__ import division
 
 parser = optparse.OptionParser()
 (options, args) = parser.parse_args()
@@ -93,7 +94,7 @@ def getRecentTracks():
             # This is at least our second time round the While loop.
             # Parse scrobbles out of the API response, then decrement the counter.
 
-            status("%s%% complete: scraping page %s of %s" % (page/totalPages, page, totalPages))
+            status("%d%% complete: scraped %s of %s pages" % (round(page/totalPages*100), page, totalPages))
             recentTracks = []
 
             for item in dom.cssselect('track'):
