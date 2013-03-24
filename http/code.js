@@ -47,45 +47,54 @@ function avatar(img, url){
   }
 }
 
+function trackProgress(){
+  scraperwiki.sql('SELECT COUNT(*) AS n FROM recenttracks WHERE user="' + username + '";', function(data){
+    var got = data[0]['n']
+    feedback("Imported " + numberWithCommas(got) + " of " + numberWithCommas(playcount) + " tracks", 'progress')
+    progress(got/playcount*100)
+    if(got >= playcount){
+      clearTimeout(poll)
+      feedback("All done!", 'progress')
+    }
+  })
+}
+
+function numberWithCommas(x) {
+  // http://stackoverflow.com/questions/2901102/
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 $(function(){
 
   $('#import').on('click', function(){
     loading(true)
     avatar(false)
+    username = $('#username').val()
     $.ajax({
       url: 'http://ws.audioscrobbler.com/2.0/',
       data: {
         method: 'user.getinfo',
-        user: $('#username').val(),
+        user: username,
         api_key: '12b5aaf2b0f27b4b9402b391c956a88a',
         format: 'json'
       }, dataType: 'json'
     }).done(function(data){
       if('user' in data){
-        var playcount = data.user.playcount
+        playcount = data.user.playcount
         avatar(data.user.image[1]['#text'], data.user.url)
         if(playcount == '0'){
           loading(false)
           feedback('<img src="exclamation.png" width="16" height="16" /> That user hasn&rsquo;t listened to anything!', 'error')
         } else {
+          $('#username').attr('disabled', true)
           feedback('Starting import&hellip;', 'progress')
           progress(0)
           // Start scraper.py, and background it (end the exec command in a "&")
-          // so the script continues to run after the exec call has ended
-          scraperwiki.exec('echo "foobar" &', function(data){
+          // so the script continues to run after the exec call has ended.
+          scraperwiki.exec('echo "started"; tool/scraper.py ' + username + ' &> log.txt &', function(data){
             // We assume the script has started.
-            // Poll the sqlite endpoint every 10 seconds to monitor for new rows.
-            var poll = setInterval(function(){
-              scraperwiki.sql('SELECT COUNT(*) AS n FROM recenttracks;', function(data){
-                console.log(data, playcount)
-              }, function(jqXHR, textStatus, errorThrown){
-                if(jqXHR.responseText.indexOf('database file does not exist') > -1){
-                  console.log("Database doesn't exist yet!")
-                } else {
-                  console.log('Oh no! Error:', jqXHR.responseText, textStatus, errorThrown)
-                }
-              })
-            }, 10000)
+            // Poll the sqlite endpoint every 5 seconds to monitor for new rows.
+            poll = setInterval(trackProgress, 5000)
             // We also need to set the crontab, so the script runs again every day
             scraperwiki.exec('echo "set crontab here"')
           }, function(jqXHR, textStatus, errorThrown){
