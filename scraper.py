@@ -94,7 +94,7 @@ def getRecentTracks():
             # This is at least our second time round the While loop.
             # Parse scrobbles out of the API response, then decrement the counter.
 
-            status("%d%% complete: scraped %s of %s pages" % (round(page/totalPages*100), page, totalPages))
+            status("%d%% complete: scraped %s of %s pages" % (100 - round(page/totalPages*100), page, totalPages))
             recentTracks = []
 
             for item in dom.cssselect('track'):
