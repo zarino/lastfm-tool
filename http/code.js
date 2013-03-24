@@ -55,6 +55,7 @@ function trackProgress(){
     if(got >= playcount){
       clearTimeout(poll)
       feedback("All done!", 'progress')
+      loading(false)
     }
   })
 }
@@ -67,6 +68,7 @@ function numberWithCommas(x) {
 $(function(){
 
   $('#import').on('click', function(){
+    if($(this).is('.loading')){ return false; }
     loading(true)
     avatar(false)
     username = $('#username').val()
