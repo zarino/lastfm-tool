@@ -1,16 +1,20 @@
 #!/usr/bin/env python
 
+# This Python script takes one command line argument: a lastfm username.
+# It then saves the user's entire scrobble history to a sqlite file.
+
 import requests
 import lxml.html
 import sqlite3
 import dumptruck
 import time
+import optparse
 
-# Doesn't work in the new version of Requests
-# requests.defaults.defaults['max_retries'] = 5
+parser = optparse.OptionParser()
+(options, args) = parser.parse_args()
 
 # Settings
-user = 'zarino'
+user = args[0] if args else 'zarino'
 api_key = '12b5aaf2b0f27b4b9402b391c956a88a'
 per_page = 200
 
@@ -122,8 +126,8 @@ def getInfo():
     print "Scraping %s.getInfo..." % user
 
     dt.execute("CREATE TABLE IF NOT EXISTS info (date INT, user TEXT, id INT, realname TEXT, url TEXT, image TEXT, country TEXT, age INT, gender TEXT, subscriber INT, playcount INT, playlists INT, bootstrap INT, registered INT)")
-    dt.create_index(['date','user'], 'info', unique=True)
-    
+    dt.create_index(['user'], 'info', unique=True)
+
     params = {
         'method': 'user.getinfo',
         'user': user,
@@ -132,11 +136,11 @@ def getInfo():
     req = requests.get('http://ws.audioscrobbler.com/2.0/', params=params)
     xml = req.text.replace(' encoding="utf-8"', '') # Stop lxml complaining about encodings
     dom = lxml.html.fromstring(xml)
-    
+
     if dom.cssselect('error'):
         raise Exception(dom.cssselect('error')[0].text)
         exit()
-    
+
     dt.upsert({
         'date': now,
         'user': user,
@@ -159,10 +163,5 @@ def getInfo():
 now = int(time.time())
 dt = dumptruck.DumpTruck(dbname="lastfm.sqlite")
 
-print '----- START %s -----' % time.strftime('%Y-%m-%d %H:%I:%S', time.gmtime())
-
 getRecentTracks()
-
 getInfo()
-
-print '----- END %s -----' % time.strftime('%Y-%m-%d %H:%I:%S', time.gmtime())
