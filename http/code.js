@@ -79,7 +79,11 @@ $(function(){
               scraperwiki.sql('SELECT COUNT(*) AS n FROM recenttracks;', function(data){
                 console.log(data, playcount)
               }, function(jqXHR, textStatus, errorThrown){
-                console.log('Oh no! Error:', jqXHR.responseText, textStatus, errorThrown)
+                if(jqXHR.responseText.indexOf('database file does not exist') > -1){
+                  console.log("Database doesn't exist yet!")
+                } else {
+                  console.log('Oh no! Error:', jqXHR.responseText, textStatus, errorThrown)
+                }
               })
             }, 10000)
             // We also need to set the crontab, so the script runs again every day
