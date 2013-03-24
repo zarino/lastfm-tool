@@ -3,13 +3,13 @@
 # This Python script takes one command line argument: a lastfm username.
 # It then saves the user's entire scrobble history to a sqlite file.
 
+from __future__ import division
 import requests
 import lxml.html
 import sqlite3
 import dumptruck
 import time
 import optparse
-from __future__ import division
 
 parser = optparse.OptionParser()
 (options, args) = parser.parse_args()
