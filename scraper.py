@@ -22,39 +22,40 @@ def main():
     now = int(time.time())
     dt = dumptruck.DumpTruck(dbname="scraperwiki.sqlite")
 
-    getRecentTracks()
+    status("Scraping %s's history..." % user)
+
     getInfo()
+    getRecentTracks()
+
+def status(message, type='ok'):
+    requests.post("https://x.scraperwiki.com/api/status", data={'type': type, 'message': message})
+    print "%s: %s" % (type, message)
 
 def getRecentTracks():
-    print "Scraping %s.getRecentTracks..." % user
-
     # Before we start scraping, we want to find out where
     # to start from. Are there already tracks in the database?
-
     try:
         r = dt.execute("SELECT date FROM recenttracks WHERE user='%s' ORDER BY date DESC LIMIT 1" % user)
         # Try selecting the most recently scraped track from the database
     except sqlite3.OperationalError as e:
         if "no such table" in str(e):
             # Aha! First time the scraper's run. create the table.
-            print '  First run: Creating database table'
             dt.execute("CREATE TABLE recenttracks (date INT, user TEXT, track TEXT, track_mbid TEXT, track_url TEXT, track_image TEXT, artist TEXT, artist_mbid TEXT, album TEXT, album_mbid TEXT)")
             dt.create_index(['date','user'], 'recenttracks', unique=True)
             latest_scrobble = 0
-            print "  First run: Scraping entire history"
         else:
             # Oh! Unexpected error. Pass it on.
+            status("Unexpected SQL error: %s" % str(e), 'error')
             raise
     else:
         if r:
             # Great! We've got the most recently scraped track.
             latest_scrobble = int(r[0]['date'])
             t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(latest_scrobble))
-            print "  Scraping %s's tracks since %s" %  (user, t)
+            status("Scraping %s's tracks since %s" %  (user, t))
         else:
             # Aha! The table exists but it's empty. Ignore.
             latest_scrobble = 0
-            print "  First run for %s: Scraping entire history" % user
 
     # This next bit is a little over-complicated because
     # we scrape *backwards*, from the past to the present
@@ -85,11 +86,15 @@ def getRecentTracks():
         dom = lxml.html.fromstring(xml)
 
         if dom.cssselect('error'):
+            status("Unexpected error from Last.fm API: %s" % dom.cssselect('error')[0].text, 'error')
             raise Exception(dom.cssselect('error')[0].text)
             exit()
 
         if totalPages:
-            print '  Scraping page %s of %s' % (page, totalPages)
+            # This is at least our second time round the While loop.
+            # Parse scrobbles out of the API response, then decrement the counter.
+
+            status("%s%% complete: scraping page %s of %s" % (totalPages/page, page, totalPages))
             recentTracks = []
 
             for item in dom.cssselect('track'):
@@ -112,25 +117,25 @@ def getRecentTracks():
                 })
 
             dt.upsert(recentTracks, "recenttracks")
-            min = time.strftime('%Y-%m-%d %H:%I', time.gmtime(float(recentTracks[0]['date'])))
-            max = time.strftime('%Y-%m-%d %H:%I', time.gmtime(float(recentTracks[-1]['date'])))
-            print '  Saved %s scrobbles: %s to %s' % (len(recentTracks), max, min)
 
             if page == 1:
-                print '  All done!'
+                # Done! Break out of the While loop.
                 break
             else:
                 page -= 1
 
         else:
+            # This is our first time round the While loop.
+            # Set an upper bound for the total number of API calls we need to make,
+            # then continue with the next loop.
             totalPages = int(dom.cssselect('recenttracks')[0].get('totalpages'))
-            print '  %s pages to scrape' % totalPages
             page = totalPages
             continue
 
 
 def getInfo():
-    print "Scraping %s.getInfo..." % user
+    # Save the user's metadata to a separate table.
+    # We specifically don't store historical states here: just the latest info.
 
     dt.execute("CREATE TABLE IF NOT EXISTS info (date INT, user TEXT, id INT, realname TEXT, url TEXT, image TEXT, country TEXT, age INT, gender TEXT, subscriber INT, playcount INT, playlists INT, bootstrap INT, registered INT)")
     dt.create_index(['user'], 'info', unique=True)
@@ -145,6 +150,7 @@ def getInfo():
     dom = lxml.html.fromstring(xml)
 
     if dom.cssselect('error'):
+        status("Unexpected error from Last.fm API: %s" % dom.cssselect('error')[0].text, 'error')
         raise Exception(dom.cssselect('error')[0].text)
         exit()
 
@@ -164,6 +170,5 @@ def getInfo():
         'bootstrap': dom.cssselect('bootstrap')[0].text,
         'registered': dom.cssselect('registered')[0].get('unixtime')
     }, "info")
-    print '  All done!'
 
 main()
