@@ -31,7 +31,7 @@ def status(message, type='ok'):
     requests.post("https://x.scraperwiki.com/api/status", data={'type': type, 'message': message})
     print "%s: %s" % (type, message)
 
-def getRecentTracks():
+def getLatestScrobble():
     # Before we start scraping, we want to find out where
     # to start from. Are there already tracks in the database?
     try:
@@ -51,38 +51,33 @@ def getRecentTracks():
         if r:
             # Great! We've got the most recently scraped track.
             latest_scrobble = int(r[0]['date'])
-            t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(latest_scrobble))
-            status("Scraping %s's tracks since %s" %  (user, t))
         else:
             # Aha! The table exists but it's empty. Ignore.
             latest_scrobble = 0
 
-    # This next bit is a little over-complicated because
-    # we scrape *backwards*, from the past to the present
+    return latest_scrobble
 
-    # We first request the most recent page, to work out
-    # how many pages there are in total. Then we start from
-    # the end and work back to the present.
-
-    # This way, if we bail halfway, we know we've *always* got
-    # historical data, and we just have to scrape everything
-    # *more recent* than the last row in our database.
-
-    page = 1
-    totalPages = 0
-
+def getRecentTracks():
     while True:
+        # We scrape *backwards*, from the past to the present - where are we up to?
+	latest_scrobble = getLatestScrobble()
+	t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(latest_scrobble))
+	status("Scraping %s's tracks since %s ..." %  (user, t))
+
+        # Get the last page - going back to the timestamp we have (there'll be
+	# one scrobble overlapping between each request)
         params = {
             'method': 'user.getrecenttracks',
             'user': user,
             'api_key': api_key,
-            'to': now,
             'from': latest_scrobble,
             'limit': per_page,
-            'page': page
+	    'page': 9999999 # get the last page always
         }
+	#print "get with params", params
         req = requests.get('http://ws.audioscrobbler.com/2.0/', params=params)
         xml = req.text.replace(' encoding="utf-8"', '') # Stop lxml complaining about encodings
+	#print "got", xml
         dom = lxml.html.fromstring(xml)
 
         if dom.cssselect('error'):
@@ -90,49 +85,32 @@ def getRecentTracks():
             raise Exception(dom.cssselect('error')[0].text)
             exit()
 
-        if totalPages:
-            # This is at least our second time round the While loop.
-            # Parse scrobbles out of the API response, then decrement the counter.
+	recentTracks = []
 
-            status("%d%% complete: scraped %s of %s pages" % (100 - round(page/totalPages*100), page, totalPages))
-            recentTracks = []
+	for item in dom.cssselect('track'):
+	    if item.get('nowplaying'):
+		# Skip 'now playing' tracks because
+		# they don't have a timestamp
+		continue
+	    recentTracks.append({
+		'date': item.cssselect('date')[0].get('uts'),
+		'user': user,
+		'track': item.cssselect('name')[0].text,
+		'track_mbid': item.cssselect('mbid')[0].text,
+		'track_url': item.cssselect('url')[0].text,
+		'track_mbid': item.cssselect('mbid')[0].text,
+		'track_artwork': item.cssselect('image[size="extralarge"]')[0].text,
+		'artist': item.cssselect('artist')[0].text,
+		'artist_mbid': item.cssselect('artist')[0].get('mbid'),
+		'album': item.cssselect('album')[0].text,
+		'album_mbid': item.cssselect('album')[0].get('mbid')
+	    })
+	# print "... got %d scrobbles" % (len(recentTracks))
+	dt.upsert(recentTracks, "recenttracks")
 
-            for item in dom.cssselect('track'):
-                if item.get('nowplaying'):
-                    # Skip 'now playing' tracks because
-                    # they don't have a timestamp
-                    continue
-                recentTracks.append({
-                    'date': item.cssselect('date')[0].get('uts'),
-                    'user': user,
-                    'track': item.cssselect('name')[0].text,
-                    'track_mbid': item.cssselect('mbid')[0].text,
-                    'track_url': item.cssselect('url')[0].text,
-                    'track_mbid': item.cssselect('mbid')[0].text,
-                    'track_artwork': item.cssselect('image[size="extralarge"]')[0].text,
-                    'artist': item.cssselect('artist')[0].text,
-                    'artist_mbid': item.cssselect('artist')[0].get('mbid'),
-                    'album': item.cssselect('album')[0].text,
-                    'album_mbid': item.cssselect('album')[0].get('mbid')
-                })
-
-            dt.upsert(recentTracks, "recenttracks")
-
-            if page == 1:
-                # Done! Break out of the While loop.
-                status("Up to date")
-                break
-            else:
-                page -= 1
-
-        else:
-            # This is our first time round the While loop.
-            # Set an upper bound for the total number of API calls we need to make,
-            # then continue with the next loop.
-            totalPages = int(dom.cssselect('recenttracks')[0].get('totalpages'))
-            page = totalPages
-            continue
-
+	if len(recentTracks) == 0:
+	    status("Up to date")
+	    break
 
 def getInfo():
     # Save the user's metadata to a separate table.
