@@ -40,7 +40,7 @@ def getRecentTracks():
     except sqlite3.OperationalError as e:
         if "no such table" in str(e):
             # Aha! First time the scraper's run. create the table.
-            dt.execute("CREATE TABLE recenttracks (date INT, user TEXT, track TEXT, track_mbid TEXT, track_url TEXT, track_image TEXT, artist TEXT, artist_mbid TEXT, album TEXT, album_mbid TEXT)")
+            dt.execute("CREATE TABLE recenttracks (date INT, user TEXT, track TEXT, track_mbid TEXT, track_url TEXT, track_artwork TEXT, artist TEXT, artist_mbid TEXT, album TEXT, album_mbid TEXT)")
             dt.create_index(['date','user'], 'recenttracks', unique=True)
             latest_scrobble = 0
         else:
