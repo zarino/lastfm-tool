@@ -120,6 +120,7 @@ def getRecentTracks():
 
             if page == 1:
                 # Done! Break out of the While loop.
+                status("Up to date")
                 break
             else:
                 page -= 1
