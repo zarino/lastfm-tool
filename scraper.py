@@ -60,24 +60,24 @@ def getLatestScrobble():
 def getRecentTracks():
     while True:
         # We scrape *backwards*, from the past to the present - where are we up to?
-	latest_scrobble = getLatestScrobble()
-	t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(latest_scrobble))
-	status("Scraping %s's tracks since %s ..." %  (user, t))
+        latest_scrobble = getLatestScrobble()
+        t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(latest_scrobble))
+        status("Scraping %s's tracks since %s..." %  (user, t))
 
         # Get the last page - going back to the timestamp we have (there'll be
-	# one scrobble overlapping between each request)
+        # one scrobble overlapping between each request)
         params = {
             'method': 'user.getrecenttracks',
             'user': user,
             'api_key': api_key,
             'from': latest_scrobble,
             'limit': per_page,
-	    'page': 9999999 # get the last page always
+            'page': 9999999 # get the last page always
         }
-	#print "get with params", params
+        #print "get with params", params
         req = requests.get('http://ws.audioscrobbler.com/2.0/', params=params)
         xml = req.text.replace(' encoding="utf-8"', '') # Stop lxml complaining about encodings
-	#print "got", xml
+        #print "got", xml
         dom = lxml.html.fromstring(xml)
 
         if dom.cssselect('error'):
@@ -85,32 +85,32 @@ def getRecentTracks():
             raise Exception(dom.cssselect('error')[0].text)
             exit()
 
-	recentTracks = []
+        recentTracks = []
 
-	for item in dom.cssselect('track'):
-	    if item.get('nowplaying'):
-		# Skip 'now playing' tracks because
-		# they don't have a timestamp
-		continue
-	    recentTracks.append({
-		'date': item.cssselect('date')[0].get('uts'),
-		'user': user,
-		'track': item.cssselect('name')[0].text,
-		'track_mbid': item.cssselect('mbid')[0].text,
-		'track_url': item.cssselect('url')[0].text,
-		'track_mbid': item.cssselect('mbid')[0].text,
-		'track_artwork': item.cssselect('image[size="extralarge"]')[0].text,
-		'artist': item.cssselect('artist')[0].text,
-		'artist_mbid': item.cssselect('artist')[0].get('mbid'),
-		'album': item.cssselect('album')[0].text,
-		'album_mbid': item.cssselect('album')[0].get('mbid')
-	    })
-	# print "... got %d scrobbles" % (len(recentTracks))
-	dt.upsert(recentTracks, "recenttracks")
+        for item in dom.cssselect('track'):
+            if item.get('nowplaying'):
+                # Skip 'now playing' tracks because
+                # they don't have a timestamp
+                continue
+            recentTracks.append({
+                'date': item.cssselect('date')[0].get('uts'),
+                'user': user,
+                'track': item.cssselect('name')[0].text,
+                'track_mbid': item.cssselect('mbid')[0].text,
+                'track_url': item.cssselect('url')[0].text,
+                'track_mbid': item.cssselect('mbid')[0].text,
+                'track_artwork': item.cssselect('image[size="extralarge"]')[0].text,
+                'artist': item.cssselect('artist')[0].text,
+                'artist_mbid': item.cssselect('artist')[0].get('mbid'),
+                'album': item.cssselect('album')[0].text,
+                'album_mbid': item.cssselect('album')[0].get('mbid')
+            })
+        # print "... got %d scrobbles" % (len(recentTracks))
+        dt.upsert(recentTracks, "recenttracks")
 
-	if len(recentTracks) == 0:
-	    status("Up to date")
-	    break
+        if len(recentTracks) == 0:
+            status("Up to date")
+            break
 
 def getInfo():
     # Save the user's metadata to a separate table.
