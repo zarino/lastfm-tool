@@ -19,6 +19,9 @@ user = args[0] if args else 'zarino'
 api_key = '12b5aaf2b0f27b4b9402b391c956a88a'
 per_page = 200
 
+tracks_to_scrape = 0
+tracks_scraped = 0
+
 dt = dumptruck.DumpTruck(dbname="scraperwiki.sqlite")
 
 def main():
@@ -30,6 +33,13 @@ def main():
 def status(message, type='ok'):
     requests.post("https://x.scraperwiki.com/api/status", data={'type': type, 'message': message})
     print "%s: %s" % (type, message)
+
+def percent(x,y):
+    p = x / y * 100
+    if p < 0.1:
+        return '<0.1%'
+    else:
+        return str(round(p, 1)).replace('.0', '') + '%'
 
 def setUpDatabase():
     dt.execute("CREATE TABLE IF NOT EXISTS recenttracks (datetime TEXT, user TEXT, track TEXT, track_mbid TEXT, track_url TEXT, track_artwork TEXT, artist TEXT, artist_mbid TEXT, album TEXT, album_mbid TEXT, _updated TEXT)")
@@ -61,8 +71,6 @@ def getRecentTracks():
     while True:
         # We scrape *backwards*, from the past to the present - where are we up to?
         latest_scrobble = getLatestScrobble()
-        t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(latest_scrobble))
-        status("Scraping %s's tracks since %s..." %  (user, t))
 
         # Get the last page - going back to the timestamp we have (there'll be
         # one scrobble overlapping between each request)
@@ -107,8 +115,10 @@ def getRecentTracks():
                 'album_mbid': item.cssselect('album')[0].get('mbid'),
                 '_updated': time.strftime('%Y-%m-%dT%H:%M:%S')
             })
-        # print "... got %d scrobbles" % (len(recentTracks))
         dt.upsert(recentTracks, "recenttracks")
+        global tracks_scraped
+        tracks_scraped += len(recentTracks)
+        status("Imported %s of %s tracks (%s)" % (tracks_scraped, tracks_to_scrape, percent(tracks_scraped, tracks_to_scrape)))
 
         if len(recentTracks) == 0:
             status("Up to date")
@@ -132,6 +142,8 @@ def getInfo():
         raise Exception(dom.cssselect('error')[0].text)
         exit()
 
+    global tracks_to_scrape
+    tracks_to_scrape = int(dom.cssselect('playcount')[0].text)
     registered = int(dom.cssselect('registered')[0].get('unixtime'))
 
     dt.upsert({
@@ -144,7 +156,7 @@ def getInfo():
         'age': dom.cssselect('age')[0].text,
         'gender': dom.cssselect('gender')[0].text,
         'subscriber': dom.cssselect('subscriber')[0].text,
-        'playcount': total_tracks,
+        'playcount': tracks_to_scrape,
         'playlists': dom.cssselect('playlists')[0].text,
         'bootstrap': dom.cssselect('bootstrap')[0].text,
         'registered': time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(registered)),
