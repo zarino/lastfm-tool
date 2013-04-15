@@ -19,11 +19,11 @@ user = args[0] if args else 'zarino'
 api_key = '12b5aaf2b0f27b4b9402b391c956a88a'
 per_page = 200
 
-now = int(time.time())
 dt = dumptruck.DumpTruck(dbname="scraperwiki.sqlite")
 
 def main():
     status("Scraping %s's history..." % user)
+    setUpDatabase()
     getInfo()
     getRecentTracks()
 
@@ -31,26 +31,26 @@ def status(message, type='ok'):
     requests.post("https://x.scraperwiki.com/api/status", data={'type': type, 'message': message})
     print "%s: %s" % (type, message)
 
+def setUpDatabase():
+    dt.execute("CREATE TABLE IF NOT EXISTS recenttracks (datetime TEXT, user TEXT, track TEXT, track_mbid TEXT, track_url TEXT, track_artwork TEXT, artist TEXT, artist_mbid TEXT, album TEXT, album_mbid TEXT, _updated TEXT)")
+    dt.execute("CREATE UNIQUE INDEX IF NOT EXISTS datetime_user_index ON recenttracks (datetime, user)")
+    dt.execute("CREATE TABLE IF NOT EXISTS userinfo (user TEXT, id INT, realname TEXT, url TEXT, image TEXT, country TEXT, age INT, gender TEXT, subscriber INT, playcount INT, playlists INT, bootstrap INT, registered TEXT, _updated TEXT)")
+    dt.execute("CREATE UNIQUE INDEX IF NOT EXISTS user_index ON userinfo (user)")
+
 def getLatestScrobble():
     # Before we start scraping, we want to find out where
     # to start from. Are there already tracks in the database?
     try:
-        r = dt.execute("SELECT date FROM recenttracks WHERE user='%s' ORDER BY date DESC LIMIT 1" % user)
+        r = dt.execute("SELECT strftime('%%s', datetime) as timestamp FROM recenttracks WHERE user='%s' ORDER BY datetime DESC LIMIT 1" % user)
         # Try selecting the most recently scraped track from the database
     except sqlite3.OperationalError as e:
-        if "no such table" in str(e):
-            # Aha! First time the scraper's run. create the table.
-            dt.execute("CREATE TABLE recenttracks (date INT, user TEXT, track TEXT, track_mbid TEXT, track_url TEXT, track_artwork TEXT, artist TEXT, artist_mbid TEXT, album TEXT, album_mbid TEXT)")
-            dt.create_index(['date','user'], 'recenttracks', unique=True)
-            latest_scrobble = 0
-        else:
-            # Oh! Unexpected error. Pass it on.
-            status("Unexpected SQL error: %s" % str(e), 'error')
-            raise
+        # Oh! Unexpected error. Pass it on.
+        status("Unexpected SQL error: %s" % str(e), 'error')
+        raise
     else:
         if r:
             # Great! We've got the most recently scraped track.
-            latest_scrobble = int(r[0]['date'])
+            latest_scrobble = int(r[0]['timestamp'])
         else:
             # Aha! The table exists but it's empty. Ignore.
             latest_scrobble = 0
@@ -92,8 +92,9 @@ def getRecentTracks():
                 # Skip 'now playing' tracks because
                 # they don't have a timestamp
                 continue
+            uts = int(item.cssselect('date')[0].get('uts'))
             recentTracks.append({
-                'date': item.cssselect('date')[0].get('uts'),
+                'datetime': time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(uts)),
                 'user': user,
                 'track': item.cssselect('name')[0].text,
                 'track_mbid': item.cssselect('mbid')[0].text,
@@ -103,7 +104,8 @@ def getRecentTracks():
                 'artist': item.cssselect('artist')[0].text,
                 'artist_mbid': item.cssselect('artist')[0].get('mbid'),
                 'album': item.cssselect('album')[0].text,
-                'album_mbid': item.cssselect('album')[0].get('mbid')
+                'album_mbid': item.cssselect('album')[0].get('mbid'),
+                '_updated': time.strftime('%Y-%m-%dT%H:%M:%S')
             })
         # print "... got %d scrobbles" % (len(recentTracks))
         dt.upsert(recentTracks, "recenttracks")
@@ -115,9 +117,6 @@ def getRecentTracks():
 def getInfo():
     # Save the user's metadata to a separate table.
     # We specifically don't store historical states here: just the latest info.
-
-    dt.execute("CREATE TABLE IF NOT EXISTS info (date INT, user TEXT, id INT, realname TEXT, url TEXT, image TEXT, country TEXT, age INT, gender TEXT, subscriber INT, playcount INT, playlists INT, bootstrap INT, registered INT)")
-    dt.create_index(['user'], 'info', unique=True)
 
     params = {
         'method': 'user.getinfo',
@@ -133,8 +132,9 @@ def getInfo():
         raise Exception(dom.cssselect('error')[0].text)
         exit()
 
+    registered = int(dom.cssselect('registered')[0].get('unixtime'))
+
     dt.upsert({
-        'date': now,
         'user': user,
         'id': dom.cssselect('id')[0].text,
         'realname': dom.cssselect('realname')[0].text,
@@ -144,10 +144,11 @@ def getInfo():
         'age': dom.cssselect('age')[0].text,
         'gender': dom.cssselect('gender')[0].text,
         'subscriber': dom.cssselect('subscriber')[0].text,
-        'playcount': dom.cssselect('playcount')[0].text,
+        'playcount': total_tracks,
         'playlists': dom.cssselect('playlists')[0].text,
         'bootstrap': dom.cssselect('bootstrap')[0].text,
-        'registered': dom.cssselect('registered')[0].get('unixtime')
-    }, "info")
+        'registered': time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(registered)),
+        '_updated': time.strftime('%Y-%m-%dT%H:%M:%S')
+    }, "userinfo")
 
 main()
