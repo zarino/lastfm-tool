@@ -1,5 +1,5 @@
 # cron.txt
 # install this cron script by running:
-# $ crontab cron.txt
+# $ crontab ~/tool/cron.txt
 
-@daily ./scraper.py >> cron.log 2>&1
+@daily ~/tool/scraper.py >> ~/cron.log 2>&1

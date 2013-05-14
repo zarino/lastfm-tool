@@ -126,7 +126,7 @@ $(function(){
             // Poll the sqlite endpoint every 5 seconds to monitor for new rows.
             poll = setInterval(trackProgress, 5000)
             // We also need to set the crontab, so the script runs again every day
-            scraperwiki.exec('echo "set crontab here"')
+            scraperwiki.exec('crontab ~/tool/cron.txt')
           }, function(jqXHR, textStatus, errorThrown){
             console.log('Oh no! Error:', jqXHR.responseText, textStatus, errorThrown)
           })
