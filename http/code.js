@@ -87,6 +87,7 @@ $(function(){
     $('label').text('Monitoring scrobbles for user:')
     $('#username').attr('disabled', true).val(data[0]['user'])
     avatar(data[0]['image'], data[0]['url'])
+    // Show a button that lets them reset everything.
     var $stopButton = $('<button class="btn btn-danger" id="stop">')
     $stopButton.html('<i class="icon-remove"></i> Start again')
     $stopButton.on('click', confirmReset)
