@@ -98,8 +98,10 @@ def getRecentTracks():
         dom = lxml.html.fromstring(xml)
 
         if dom.cssselect('error'):
-            status("Unexpected error from Last.fm API: %s" % dom.cssselect('error')[0].text, 'error')
-            raise Exception(dom.cssselect('error')[0].text)
+            errorNumber = dom.cssselect('error')[0].get('code')
+            errorMessage = dom.cssselect('error')[0].text
+            status("Unexpected error from Last.fm API: %s (%s)" % (errorMessage, errorNumber), 'error')
+            raise Exception("%s (%s)" % (errorMessage, errorNumber))
             exit()
 
         recentTracks = []
@@ -146,8 +148,10 @@ def getInfo():
     dom = lxml.html.fromstring(xml)
 
     if dom.cssselect('error'):
-        status("Unexpected error from Last.fm API: %s" % dom.cssselect('error')[0].text, 'error')
-        raise Exception(dom.cssselect('error')[0].text)
+        errorNumber = dom.cssselect('error')[0].get('code')
+        errorMessage = dom.cssselect('error')[0].text
+        status("Unexpected error from Last.fm API: %s (%s)" % (errorMessage, errorNumber), 'error')
+        raise Exception("%s (%s)" % (errorMessage, errorNumber))
         exit()
 
     global tracks_to_scrape
