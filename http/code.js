@@ -68,9 +68,9 @@ function numberWithCommas(x) {
 function confirmReset(e){
   e.stopPropagation()
   feedback('<strong>Sure?</strong> This will delete all of your data.', 'error')
-  $('#stop').html('<i class="icon-remove"></i> Yes I&rsquo;m sure').off('click').on('click', reset)
+  $('#stop').html('<i class="icon-remove space"></i> Yes I&rsquo;m sure').off('click').on('click', reset)
   $('body').on('click', function(){
-    $('#stop').html('<i class="icon-remove"></i> Start again').off('click').on('click', confirmReset)
+    $('#stop').html('<i class="icon-remove space"></i> Start again').off('click').on('click', confirmReset)
     feedback(false)
     $('body').off('click')
   })
@@ -96,7 +96,7 @@ $(function(){
     avatar(data[0]['image'], data[0]['url'])
     // Show a button that lets them reset everything.
     var $stopButton = $('<button class="btn btn-danger" id="stop">')
-    $stopButton.html('<i class="icon-remove"></i> Start again')
+    $stopButton.html('<i class="icon-remove space"></i> Start again')
     $stopButton.on('click', confirmReset)
     $('#import').replaceWith($stopButton)
   }, function(jqXHR, textStatus, errorThrown){
