@@ -65,6 +65,21 @@ function numberWithCommas(x) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+function confirmReset(){
+  feedback('<strong>Sure?</strong> This will delete all of your data.', 'error')
+  $('#stop').html('<i class="icon-remove"></i> Yes I&rsquo;m sure').off('click').on('click', reset)
+}
+
+function reset(){
+  $('#stop').addClass('loading').html('Starting again&hellip;')
+  feedback(false)
+  scraperwiki.exec('rm -f scraperwiki.sqlite && crontab -r', function(){
+    window.location.reload()
+  }, function(jqXHR){
+    scraperwiki.alert('Could not delete database', jqXHR.responseText, 1)
+  })
+}
+
 $(function(){
 
   scraperwiki.sql('select user, image from userinfo', function(data){
@@ -72,6 +87,10 @@ $(function(){
     $('label').text('Monitoring scrobbles for user:')
     $('#username').attr('disabled', true).val(data[0]['user'])
     avatar(data[0]['image'])
+    var $stopButton = $('<button class="btn btn-danger" id="stop">')
+    $stopButton.html('<i class="icon-remove"></i> Start again')
+    $stopButton.on('click', confirmReset)
+    $('#import').replaceWith($stopButton)
   }, function(jqXHR, textStatus, errorThrown){
     console.log(jqXHR.responseText)
   })

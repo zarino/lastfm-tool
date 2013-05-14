@@ -23,13 +23,13 @@ label {
   color: #999;
 }
 
-#import {
+.input-append button {
   line-height: 32px;
   padding-left: 16px;
   padding-right: 16px;
 }
 
-#import.loading {
+.input-append button.loading {
   background-position: 12px 12px;
   padding-left: 36px;
 }
