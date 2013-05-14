@@ -67,10 +67,19 @@ def getLatestScrobble():
 
     return latest_scrobble
 
+def getTracksScraped():
+    r = dt.execute("SELECT count(*) as 'count' FROM recenttracks WHERE user='%s'" % user)
+    if r:
+        return int(r[0]['count'])
+    else:
+        return 0
+
 def getRecentTracks():
+    global tracks_scraped
     while True:
         # We scrape *backwards*, from the past to the present - where are we up to?
         latest_scrobble = getLatestScrobble()
+        tracks_scraped = getTracksScraped()
 
         # Get the last page - going back to the timestamp we have (there'll be
         # one scrobble overlapping between each request)
@@ -116,7 +125,6 @@ def getRecentTracks():
                 '_updated': time.strftime('%Y-%m-%dT%H:%M:%S')
             })
         dt.upsert(recentTracks, "recenttracks")
-        global tracks_scraped
         tracks_scraped += len(recentTracks)
         status("Imported %s of %s tracks (%s)" % (tracks_scraped, tracks_to_scrape, percent(tracks_scraped, tracks_to_scrape)))
 
