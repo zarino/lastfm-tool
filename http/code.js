@@ -67,6 +67,15 @@ function numberWithCommas(x) {
 
 $(function(){
 
+  scraperwiki.sql('select user, image from userinfo', function(data){
+    // The tool has already been run. Show status, rather than empty input box.
+    $('label').text('Monitoring scrobbles for user:')
+    $('#username').attr('disabled', true).val(data[0]['user'])
+    avatar(data[0]['image'])
+  }, function(jqXHR, textStatus, errorThrown){
+    console.log(jqXHR.responseText)
+  })
+
   $('#import').on('click', function(){
     if($(this).is('.loading')){ return false; }
     loading(true)
