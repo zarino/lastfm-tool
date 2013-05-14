@@ -82,11 +82,11 @@ function reset(){
 
 $(function(){
 
-  scraperwiki.sql('select user, image from userinfo', function(data){
+  scraperwiki.sql('select user, image, url from userinfo', function(data){
     // The tool has already been run. Show status, rather than empty input box.
     $('label').text('Monitoring scrobbles for user:')
     $('#username').attr('disabled', true).val(data[0]['user'])
-    avatar(data[0]['image'])
+    avatar(data[0]['image'], data[0]['url'])
     var $stopButton = $('<button class="btn btn-danger" id="stop">')
     $stopButton.html('<i class="icon-remove"></i> Start again')
     $stopButton.on('click', confirmReset)
