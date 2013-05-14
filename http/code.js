@@ -65,12 +65,19 @@ function numberWithCommas(x) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-function confirmReset(){
+function confirmReset(e){
+  e.stopPropagation()
   feedback('<strong>Sure?</strong> This will delete all of your data.', 'error')
   $('#stop').html('<i class="icon-remove"></i> Yes I&rsquo;m sure').off('click').on('click', reset)
+  $('body').on('click', function(){
+    $('#stop').html('<i class="icon-remove"></i> Start again').off('click').on('click', confirmReset)
+    feedback(false)
+    $('body').off('click')
+  })
 }
 
-function reset(){
+function reset(e){
+  e.stopPropagation()
   $('#stop').addClass('loading').html('Starting again&hellip;')
   feedback(false)
   scraperwiki.exec('rm -f scraperwiki.sqlite && crontab -r', function(){
