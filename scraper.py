@@ -77,12 +77,12 @@ def getTracksScraped():
 def getRecentTracks():
     global tracks_scraped
     while True:
-        # We scrape *backwards*, from the past to the present - where are we up to?
+        # We scrape from the past to the present - where are we up to?
         latest_scrobble = getLatestScrobble()
         tracks_scraped = getTracksScraped()
 
-        # Get the last page - going back to the timestamp we have (there'll be
-        # one scrobble overlapping between each request)
+        # Get the last page - going back to the timestamp we have
+        # (there'll be one scrobble overlapping between each request)
         params = {
             'method': 'user.getrecenttracks',
             'user': user,
@@ -91,10 +91,10 @@ def getRecentTracks():
             'limit': per_page,
             'page': 9999999 # get the last page always
         }
-        #print "get with params", params
+        # print "get with params", params
         req = requests.get('http://ws.audioscrobbler.com/2.0/', params=params)
         xml = req.text.replace(' encoding="utf-8"', '') # Stop lxml complaining about encodings
-        #print "got", xml
+        # print "got", xml
         dom = lxml.html.fromstring(xml)
 
         if dom.cssselect('error'):
