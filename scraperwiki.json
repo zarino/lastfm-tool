@@ -1,4 +1,6 @@
 {
   "displayName": "Get Last.fm history",
-  "description": "See all the tracks a Last.fm user has ever listened to"
+  "description": "See all the tracks a Last.fm user has ever listened to",
+  "icon": "https://s3-eu-west-1.amazonaws.com/sw-icons/tool-icon-lastfm.png",
+  "color": "#D51007"
 }
