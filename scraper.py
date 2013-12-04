@@ -10,6 +10,9 @@ import sqlite3
 import dumptruck
 import time
 import optparse
+import datetime
+
+now = datetime.datetime.now()
 
 parser = optparse.OptionParser()
 (options, args) = parser.parse_args()
@@ -25,7 +28,7 @@ tracks_scraped = 0
 dt = dumptruck.DumpTruck(dbname="scraperwiki.sqlite")
 
 def main():
-    status("Scraping %s's history..." % user)
+    status("%s - Scraping %s's history..." % (now.strftime("%Y-%m-%d %H:%M"), user))
     setUpDatabase()
     getInfo()
     getRecentTracks()
